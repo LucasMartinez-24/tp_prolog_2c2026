@@ -190,6 +190,17 @@ test(mejorJuegoNaive, [nondet]) :-
     setof(Js, mejorJuegoNaive([[libre,rojo,libre],[rojo,libre,rojo]], Js), L),
     L =@= [[(2,2)]].
 
+test(mejorJuegoNaive, [nondet]) :-
+    setof(Js, mejorJuegoNaive(  [[libre,rojo,rojo],
+                                 [rojo,rojo,libre]], Js), L),
+    L =@= [[(1,1),(1,2)], [(1,1),(2,3)], [(2,3),(1,1)], [(2,3),(2,2)]]. 
+
+test(mejorJuegoNaive, [nondet]) :-
+    setof(Js, mejorJuegoNaive(  [[libre, rojo,  libre],
+                                 [rojo,  libre, rojo ],
+                                 [libre, rojo,  libre]], Js), L),
+    L =@= [[(2,2)]]. 
+
 % Ejercicio 8: tableroEnElQueNaiveGanaEmpezandoPor
 % Comentar para no incluir
 

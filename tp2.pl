@@ -5,6 +5,7 @@
 % ----------------
 
 % esMatriz(+ListaDeListas)
+esMatriz([]).
 esMatriz(M):- nth0(0,M,M0), length(M0,L), todasMiden(M,L).
 
 todasMiden([],_).
@@ -16,7 +17,8 @@ todasMiden([M|MS],L):- length(M,L), todasMiden(MS,L).
 
 % tamaño(+Matriz, -Filas, -Columnas)
 % Precondicion: esMatriz(Matriz)
-tamano(M,F,C):- length(M,F), nth0(0,M,L), length(L,C).
+tamaño([],0,0).
+tamaño(M,F,C):- length(M,F), nth0(0,M,L), length(L,C).
 
 % ----------------
 % Ejercicio 3
@@ -24,7 +26,7 @@ tamano(M,F,C):- length(M,F), nth0(0,M,L), length(L,C).
 
 % coordenadaEnRango(+Matriz, +Coordenada)
 % Precondicion: esMatriz(Matriz)
-coordenadaEnRango(M, (I,J)) :- tamano(M,F,C), I < F, J < C.
+coordenadaEnRango(M, (I,J)) :- tamaño(M,F,C), 0 < I, I =< F, 0 < J, J =< C.
 
 % ----------------
 % Observadores de tablero.
@@ -63,9 +65,9 @@ color(T, Color, Coordenada) :-
 % Ejercicio 4.a)
 % ----------------
 
-% tableroConPosicionLiberada(+Tablero, +Coordenada, -TableroLiberado)
+% tableroConPosiciónLiberada(+Tablero, +Coordenada, -TableroLiberado)
 % Precondicion: esMatriz(Tablero), coordenadaEnRango(Tablero, Coordenada), not(libre(Tablero, Coordenada)).
-tableroConPosicionLiberada(T,(I,J),L):-
+tableroConPosiciónLiberada(T,(I,J),L):-
     nth1(I,T,Fila,OtrasFilas),
     nth1(J,Fila,_,OtrasCols),
     nth1(J,FilaLibre,libre,OtrasCols),
@@ -82,7 +84,7 @@ tableroConPosicionesLiberadas(T,[],T).
 
 tableroConPosicionesLiberadas(T,[P|PS],L):-
     tableroConPosicionesLiberadas(T,PS,LSiguiente),
-    tableroConPosicionLiberada(LSiguiente,P,L).
+    tableroConPosiciónLiberada(LSiguiente,P,L).
 
 % ----------------
 % Operaciones sobre coordenadas.
@@ -118,19 +120,19 @@ hayOcupadaAl(T, (I, J), D) :-
   libre(T, V),
   hayOcupadaAl(T, V, D).
 
-% ocupadaEnLineaRectaAl(+Tablero, +(I, J), +Direccion, -Ocupada)
+% ocupadaEnLíneaRectaAl(+Tablero, +(I, J), +Direccion, -Ocupada)
 % Precondicion: esMatriz(Tablero), coordenadaEnRango(Tablero, (I,J)), hayOcupadaAl(Tablero, (I, J), Direccion).
-ocupadaEnLineaRectaAl(T, (I, J), D, O) :-
+ocupadaEnLíneaRectaAl(T, (I, J), D, O) :-
   vecinaEnDir((I, J), D, O),
   color(T, _, O).
-ocupadaEnLineaRectaAl(T, (I, J), D, O) :-
+ocupadaEnLíneaRectaAl(T, (I, J), D, O) :-
   vecinaEnDir((I, J), D, V),
   libre(T, V),
-  ocupadaEnLineaRectaAl(T, V, D, O).
+  ocupadaEnLíneaRectaAl(T, V, D, O).
 
-% ocupadasEnLineaRecta(+Tablero, +(I, J), -PosicionesOcupadas)
+% ocupadasEnLíneaRecta(+Tablero, +(I, J), -PosicionesOcupadas)
 % Precondicion: esMatriz(Tablero), coordenadaEnRango(Tablero, (I,J)).
-ocupadasEnLineaRecta(T, (I, J), Ocupadas) :-
+ocupadasEnLíneaRecta(T, (I, J), Ocupadas) :-
   direcciones(Direcciones),
   ocupadasPorDirecciones(T, (I, J), Direcciones, Ocupadas).
 
@@ -139,7 +141,7 @@ ocupadasEnLineaRecta(T, (I, J), Ocupadas) :-
 ocupadasPorDirecciones(_, _, [], []).
 ocupadasPorDirecciones(T, (I, J), [D|Ds], [O|Os]) :-
   hayOcupadaAl(T, (I, J), D),
-  ocupadaEnLineaRectaAl(T, (I, J), D, O),
+  ocupadaEnLíneaRectaAl(T, (I, J), D, O),
   ocupadasPorDirecciones(T, (I, J), Ds, Os).
 ocupadasPorDirecciones(T, (I, J), [D|Ds], Os) :-
   not(hayOcupadaAl(T, (I, J), D)),
@@ -153,7 +155,7 @@ ocupadasPorDirecciones(T, (I, J), [D|Ds], Os) :-
 % Instancia en Colores la lista con los colores que son predominantes en el tablero Tablero desde la coordenada (I,J), y en Coordenadas las coordenadas correspondientes a dichos colores..
 % Precondicion: esMatriz(Tablero), coordenadaEnRango(Tablero, (I,J)), libre(Tablero, (I, J)).
 coloresPredominantes(T, (I, J), ColoresPredominantes, Coordenadas) :-
-  ocupadasEnLineaRecta(T, (I, J), Os),
+  ocupadasEnLíneaRecta(T, (I, J), Os),
   posicionesAColores(T, Os, ColoresOcupadas),
   soloPredominantesEn(ColoresOcupadas, ColoresOcupadas, Os, ColoresPredominantes, Coordenadas).
 
@@ -209,7 +211,7 @@ hayColorConMasPresencia([_|Cs], K, CC) :-
 % Tiene éxito si la posicion Jugada tiene colores vecinos repetidos
 jugadaPosible(T, (I, J)) :-
   libre(T, (I, J)),
-  ocupadasEnLineaRecta(T, (I, J), Os),
+  ocupadasEnLíneaRecta(T, (I, J), Os),
   posicionesAColores(T, Os, Cs),
   not(is_set(Cs)).
 
@@ -217,9 +219,10 @@ jugadaPosible(T, (I, J)) :-
 % Ejercicio 5.a)
 % ----------------
 
-% jugarPosicion(+TableroInicial, +Coordenada, -TableroResultante)
+% jugarPosición(+TableroInicial, +Coordenada, -TableroResultante)
 % Precondicion: esMatriz(TableroInicial), coordenadaEnRango(TableroInicial, Coordenada), libre(TableroInicial, Coordenada).
-jugarPosicion(TI, Pos, TRes) :- 
+jugarPosición(TI, Pos, TRes) :- 
+  jugadaPosible(TI,Pos),
   coloresPredominantes(TI,Pos,_,Coordenadas), 
   tableroConPosicionesLiberadas(TI,Coordenadas,TRes).
 
@@ -233,7 +236,7 @@ jugarPosicion(TI, Pos, TRes) :-
 jugarPosiciones(TI, [], TI).
 
 jugarPosiciones(TI, [P|PS], TRes) :-
-  jugarPosicion(TI,P,TSiguiente),
+  jugarPosición(TI,P,TSiguiente),
   jugarPosiciones(TSiguiente,PS,TRes).
 
 % jugarNaive(+TableroInicial, -TableroFinal)
@@ -242,7 +245,7 @@ jugarNaive(T, T) :-
   not(jugadaPosible(T, _)).
 jugarNaive(T, TF) :-
   jugadaPosible(T, J),
-  jugarPosicion(T, J, TI),
+  jugarPosición(T, J, TI),
   jugarNaive(TI, TF).
 
 % ----------------
@@ -255,7 +258,7 @@ jugadasNaive(T, []):- not(jugadaPosible(T,_)).
 
 jugadasNaive(T, [J|JS]):-
   jugadaPosible(T,J),
-  jugarPosicion(T,J,TSiguiente),
+  jugarPosición(T,J,TSiguiente),
   jugadasNaive(TSiguiente,JS).
 
 % ----------------
@@ -265,7 +268,7 @@ jugadasNaive(T, [J|JS]):-
 % victoriaConJugadas(+Tablero, +Jugadas).
 % Precondicion: esMatriz(Tablero).
 % Precondicion: para cada Coordenada en Jugadas: coordenadaEnRango(Tablero, Coordenada).
-victoriaConJugadas(_, _) :- completar("Ejercicio 7.a").
+victoriaConJugadas(T, JS) :- jugarPosiciones(T, JS, TRes), not(color(TRes, rojo, C)), not(color(TRes, azul, C)), not(color(TRes, verde, C)). 
 
 % ----------------
 % Ejercicio 7.b)
@@ -273,7 +276,7 @@ victoriaConJugadas(_, _) :- completar("Ejercicio 7.a").
 
 % juegoNaiveVictorioso(+Tablero, -Jugadas)
 % Precondicion: esMatriz(Tablero).
-juegoNaiveVictorioso(_, _) :- completar("Ejercicio 7.b").
+juegoNaiveVictorioso(T, JS) :- jugadasNaive(T,JS), victoriaConJugadas(T,JS).
 
 % ----------------
 % Ejercicio 7.c)
@@ -281,7 +284,7 @@ juegoNaiveVictorioso(_, _) :- completar("Ejercicio 7.b").
 
 % mejorJuegoNaive(+Tablero, -Jugadas)
 % Precondicion: esMatriz(Tablero).
-mejorJuegoNaive(_, _) :- completar("Ejercicio 7.c").
+mejorJuegoNaive(T, JS) :- juegoNaiveVictorioso(T, JS), length(JS,L), not((juegoNaiveVictorioso(T, JSo), length(JSo, Lo), L > Lo)).
 
 % ----------------
 % Ejercicio 8 - OPCIONAL
@@ -308,7 +311,7 @@ guiJuego(T, Js) :- guiTablero(T), guiParesJugadasTableros(T, Js).
 guiParesJugadasTableros(_, []).
 guiParesJugadasTableros(T, [J | Js]) :-
   write(J), write('\n'),
-  jugarPosicion(T, J, T2),
+  jugarPosición(T, J, T2),
   guiTablero(T2),
   guiParesJugadasTableros(T2, Js).
 
@@ -318,7 +321,7 @@ guiParesJugadasTableros(T, [J | Js]) :-
 
 % tablero(+N, -T)
 tablero(1, [
-  [rojo,  rojo, azul,  rojo],
+  [rojo,  libre, azul,  rojo],
   [azul,  libre, azul,  rojo],
   [verde, rojo,  azul,  verde],
   [libre, libre, libre, rojo]
