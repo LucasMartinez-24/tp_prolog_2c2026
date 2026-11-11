@@ -26,6 +26,14 @@ tamaño(M,F,C):- length(M,F), nth0(0,M,L), length(L,C).
 
 % coordenadaEnRango(+Matriz, +Coordenada)
 % Precondicion: esMatriz(Matriz)
+% Reversibilidad: no es reversible en ninguno de sus argumentos.
+% - Coordenada: si (I,J) no esta instanciada, las comparaciones aritmeticas (<, =<)
+%   requieren que ambos lados esten instanciados, por lo que se produce un error
+%   de instanciacion en lugar de generar las coordenadas validas.
+% - Matriz: si no esta instanciada, length/2 dentro de tamaño/3 genera infinitas
+%   listas candidatas: para una cantidad fija de filas prueba infinitos largos de la
+%   primera fila, por lo que nunca avanza a mas filas y no termina (ademas, solo
+%   restringe la primera fila, asi que no generaria matrices).
 coordenadaEnRango(M, (I,J)) :- tamaño(M,F,C), 0 < I, I =< F, 0 < J, J =< C.
 
 % ----------------
@@ -68,10 +76,10 @@ color(T, Color, Coordenada) :-
 % tableroConPosiciónLiberada(+Tablero, +Coordenada, -TableroLiberado)
 % Precondicion: esMatriz(Tablero), coordenadaEnRango(Tablero, Coordenada), not(libre(Tablero, Coordenada)).
 tableroConPosiciónLiberada(T,(I,J),L):-
-    nth1(I,T,Fila,OtrasFilas),
-    nth1(J,Fila,_,OtrasCols),
-    nth1(J,FilaLibre,libre,OtrasCols),
-    nth1(I,L,FilaLibre,OtrasFilas).
+  nth1(I,T,Fila,OtrasFilas),
+  nth1(J,Fila,_,OtrasCols),
+  nth1(J,FilaLibre,libre,OtrasCols),
+  nth1(I,L,FilaLibre,OtrasFilas).
 
 % ----------------
 % Ejercicio 4.b)
@@ -83,8 +91,8 @@ tableroConPosiciónLiberada(T,(I,J),L):-
 tableroConPosicionesLiberadas(T,[],T).
 
 tableroConPosicionesLiberadas(T,[P|PS],L):-
-    tableroConPosicionesLiberadas(T,PS,LSiguiente),
-    tableroConPosiciónLiberada(LSiguiente,P,L).
+  tableroConPosicionesLiberadas(T,PS,LSiguiente),
+  tableroConPosiciónLiberada(LSiguiente,P,L).
 
 % ----------------
 % Operaciones sobre coordenadas.
@@ -221,9 +229,9 @@ jugadaPosible(T, (I, J)) :-
 
 % jugarPosición(+TableroInicial, +Coordenada, -TableroResultante)
 % Precondicion: esMatriz(TableroInicial), coordenadaEnRango(TableroInicial, Coordenada), libre(TableroInicial, Coordenada).
-jugarPosición(TI, Pos, TRes) :- 
+jugarPosición(TI, Pos, TRes) :-
   jugadaPosible(TI,Pos),
-  coloresPredominantes(TI,Pos,_,Coordenadas), 
+  coloresPredominantes(TI,Pos,_,Coordenadas),
   tableroConPosicionesLiberadas(TI,Coordenadas,TRes).
 
 % ----------------
@@ -268,7 +276,10 @@ jugadasNaive(T, [J|JS]):-
 % victoriaConJugadas(+Tablero, +Jugadas).
 % Precondicion: esMatriz(Tablero).
 % Precondicion: para cada Coordenada en Jugadas: coordenadaEnRango(Tablero, Coordenada).
-victoriaConJugadas(T, JS) :- jugarPosiciones(T, JS, TRes), not(color(TRes, rojo, C)), not(color(TRes, azul, C)), not(color(TRes, verde, C)). 
+% Gana si en el tablero resultante no queda ninguna posicion de ningun color (color/1 enumera todos).
+victoriaConJugadas(T, JS) :-
+  jugarPosiciones(T, JS, TRes),
+  not(color(TRes, _, _)).
 
 % ----------------
 % Ejercicio 7.b)
